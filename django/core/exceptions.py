@@ -181,3 +181,7 @@ class ValidationError(Exception):
 class EmptyResultSet(Exception):
     """A database query predicate is impossible."""
     pass
+
+
+class UnknownAllowedHostsMode(Exception):
+    pass
