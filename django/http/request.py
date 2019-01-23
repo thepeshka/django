@@ -8,7 +8,7 @@ from urllib.parse import quote, urlencode, urljoin, urlsplit
 from django.conf import settings
 from django.core import signing
 from django.core.exceptions import (
-    DisallowedHost, ImproperlyConfigured, RequestDataTooBig,
+    DisallowedHost, ImproperlyConfigured, RequestDataTooBig, UnknownAllowedHostsMode
 )
 from django.core.files import uploadhandler
 from django.http.multipartparser import MultiPartParser, MultiPartParserError
@@ -580,4 +580,12 @@ def validate_host(host, allowed_hosts):
 
     Return ``True`` for a valid host, ``False`` otherwise.
     """
-    return any(pattern == '*' or is_same_domain(host, pattern) for pattern in allowed_hosts)
+    if settings.ALLOWED_HOSTS_MODE == "basic":
+        return any(pattern == '*' or is_same_domain(host, pattern) for pattern in allowed_hosts)
+    elif settings.ALLOWED_HOSTS_MODE == "wildcard":
+        for pattern in allowed_hosts:
+            if re.match(pattern.replace(".", "\.").replace("*", "\d{1,3}"), host):
+                return True
+        return False
+    else:
+        raise UnknownAllowedHostsMode
